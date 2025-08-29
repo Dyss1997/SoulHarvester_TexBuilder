@@ -1,7 +1,6 @@
 {
   "name": "tex-builder",
   "private": true,
-  "homepage": "https://Dyss1997.github.io/SoulHarvester_TexBuilder",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -10,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
