@@ -1,9 +1,14 @@
 import {Box, Button, InputAdornment, Stack, TextField} from "@mui/material";
 import "./ImageSlot.css";
-import * as React from "react";
 import CancelIcon from '@mui/icons-material/Cancel';
+import {UploadedImage} from "./ImageDataEditorTypes.ts";
 
-const ImageSlot = ({image, index, handleDelete, handleDelayChange}) => {
+const ImageSlot = ({image, index, handleDelete, handleDelayChange}: {
+    image: UploadedImage,
+    index: number,
+    handleDelete: (index: number) => void,
+    handleDelayChange: (index: number, newDelay: number) => void
+}) => {
     return <div>
         <Stack direction="row" spacing={10}>
             <Box alignSelf="center">
@@ -24,7 +29,7 @@ const ImageSlot = ({image, index, handleDelete, handleDelayChange}) => {
                         },
                     }}
                     label="Animation Delay (ms)"
-                    onChange={event => handleDelayChange(index, event.target.value)}/>
+                    onChange={event => handleDelayChange(index, Number(event.target.value))}/>
             </Box>
             <Box maxWidth={"200px"} minWidth={"100px"}>
                 <img src={URL.createObjectURL(image.file)} alt="sprite" className="h-auto preview-image"/>

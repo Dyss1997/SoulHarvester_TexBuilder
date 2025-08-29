@@ -1,12 +1,17 @@
 import "./DropZoneBanner.css"
-const DropZoneBanner = ({onClick, onDrop}) => {
-    const handleDragOver = (ev) => {
+import * as React from "react";
+
+const DropZoneBanner = ({onClick, onDrop}: {
+    onClick: () => void,
+    onDrop: (files: FileList) => void
+}) => {
+    const handleDragOver = (ev: React.DragEvent<HTMLDivElement>) => {
         ev.preventDefault();
         ev.stopPropagation();
         ev.dataTransfer.dropEffect = "copy";
     };
 
-    const handleDrop = (ev) => {
+    const handleDrop = (ev: React.DragEvent<HTMLDivElement>) => {
         ev.preventDefault();
         ev.stopPropagation();
         onDrop(ev.dataTransfer.files);

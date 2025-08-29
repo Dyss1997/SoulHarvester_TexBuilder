@@ -16,23 +16,32 @@ import DropZoneBanner from "./DropZoneBanner.tsx";
 import * as React from "react";
 import {useState} from "react";
 import AnimationPreview from "./AnimationPreview.tsx";
+import {Category, UploadedImage} from "./ImageDataEditorTypes.ts";
 
-const CategoryAccordion = ({imageData, category, handleDelete, handleFileUpload, handleDelayChange}) => {
-    const inputRef = React.useRef(null);
+const CategoryAccordion = ({imageData, category, handleDelete, handleFileUpload, handleDelayChange}: {
+    imageData: UploadedImage[]; // adjust type as needed
+    category: Category; // adjust if it's an object instead
+    handleDelete: (category: Category, index: number) => void; // adjust params/return types
+    handleFileUpload: (files: FileList, delay: number, category: Category) => void; // adjust
+    handleDelayChange: (category: Category, index: number, newDelay: number) => void; // adjust
+}) => {
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
     const [delay, setDelay] = useState(200);
-    const handleAddDelayChange = (event) => {
+    const handleAddDelayChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = Math.min(Math.max(parseInt(event.target.value, 10), 1), 9999)
         setDelay(newValue);
     };
-    const handleCategoryDelete = (index) => {
+    const handleCategoryDelete = (index: number) => {
         handleDelete(category, index);
     };
-    const handleCategoryDelayChange = (index, newDelay) => {
-        const newValue = Math.min(Math.max(parseInt(newDelay, 10), 1), 9999)
+    const handleCategoryDelayChange = (index: number, newDelay: number) => {
+        const newValue = Math.min(Math.max(newDelay, 1), 9999)
         handleDelayChange(category, index, newValue);
     };
     const handleClick = () => {
-        inputRef.current.click();
+        if (inputRef.current) {
+            inputRef.current!.click();
+        }
     };
     return (
         <Accordion>
@@ -61,7 +70,7 @@ const CategoryAccordion = ({imageData, category, handleDelete, handleFileUpload,
                 <Stack direction="row" spacing={3}>
                     <MenuItem>
                         <DropZoneBanner onClick={handleClick}
-                                        onDrop={files => handleFileUpload({target: {files: files}}, delay, category)}/>
+                                        onDrop={files => handleFileUpload(files, delay, category)}/>
                     </MenuItem>
                     <ListItem>
                         <TextField
@@ -76,7 +85,12 @@ const CategoryAccordion = ({imageData, category, handleDelete, handleFileUpload,
                             onChange={handleAddDelayChange}/>
                     </ListItem>
                     <input hidden type="file" accept="image/*" ref={inputRef} multiple
-                           onChange={event => handleFileUpload(event, delay, category)}/>
+                           onChange={event => {
+                               const files: FileList | null = event.target.files;
+                               if (files) {
+                                   handleFileUpload(files, delay, category);
+                               }
+                           }}/>
                 </Stack>
             </AccordionDetails>
         </Accordion>

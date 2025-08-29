@@ -1,9 +1,9 @@
-import * as React from "react";
 import {useState} from "react";
 import CategoryAccordion from "./CategoryAcordion.tsx";
 import {Button, Stack} from "@mui/material";
+import {Category, Images, UploadedImage} from "./ImageDataEditorTypes.ts";
 
-const CATEGORY_IDS = {
+const CATEGORY_IDS: Record<Category, number> = {
     walkUp: 0,
     walkDown: 1,
     walkLeft: 2,
@@ -15,7 +15,7 @@ const CATEGORY_IDS = {
     avatar: 8,
 };
 export default function ImageDataEditor() {
-    const [images, setImages] = useState({
+    const [images, setImages] = useState<Images>({
         walkUp: [],
         walkDown: [],
         walkLeft: [],
@@ -26,17 +26,19 @@ export default function ImageDataEditor() {
         health: [],
         avatar: [],
     });
-    const handleFileUpload = (event, delay, category) => {
-        const files: File[] = Array.from(event.target.files);
-        const newImages = [];
+    const handleFileUpload = (files: FileList, delay: number, category: Category) => {
+        const filesArray: File[] = Array.from(files);
+        const newImages: UploadedImage[] = [];
 
-        files.forEach((file) => {
+        filesArray.forEach((file) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
 
             reader.onload = (e) => {
+                const target = e.target;
+                if (!target) return; // exit if null
                 const img = new Image();
-                if (typeof e.target.result === "string") {
+                if (typeof e?.target.result === "string") {
                     img.src = e.target.result;
                 }
 
@@ -44,12 +46,16 @@ export default function ImageDataEditor() {
                     const canvas = document.createElement("canvas");
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    const ctx = canvas.getContext("2d");
+                    const ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
+                    if (ctx === null) {
+                        console.log("Could not retreive canvas 2D context.")
+                        return;
+                    }
                     ctx.drawImage(img, 0, 0);
 
                     const imageData = ctx.getImageData(0, 0, img.width, img.height).data; // RGBA pixel data
 
-                    const newImage = {
+                    const newImage: UploadedImage = {
                         file,
                         delay,
                         category,
@@ -60,7 +66,7 @@ export default function ImageDataEditor() {
 
                     newImages.push(newImage);
 
-                    if (newImages.length === files.length) {
+                    if (newImages.length === filesArray.length) {
                         setImages(prevImages => ({
                             ...prevImages,
                             [category]: [...prevImages[category], ...newImages]
@@ -71,14 +77,14 @@ export default function ImageDataEditor() {
         });
     };
 
-    const handleDelete = (category, index) => {
+    const handleDelete = (category: Category, index: number) => {
         setImages(prevImages => ({
             ...prevImages,
             [category]: prevImages[category].filter((_, i) => i !== index) // Remove item at index
         }));
     }
 
-    const handleDelayChange = (category, index, newDelay) => {
+    const handleDelayChange = (category: Category, index: number, newDelay: number) => {
         setImages(prevImages => ({
             ...prevImages,
             [category]: prevImages[category].map((image, i) =>
@@ -101,12 +107,8 @@ export default function ImageDataEditor() {
         buffer.push(new Uint16Array([imageCount]));
 
         // Process each image in all categories
-        Object.entries(images).forEach(([categoryName, imageArray]) => {
+        (Object.entries(images) as [Category, UploadedImage[]][]).forEach(([categoryName, imageArray]) => {
             const categoryId = CATEGORY_IDS[categoryName];
-            if (categoryId === undefined) {
-                console.warn(`Unknown category: ${categoryName}, skipping.`);
-                return;
-            }
             imageArray.forEach((image) => {
                 // Category identifier (1 byte)
                 buffer.push(new Uint8Array([categoryId]));
@@ -134,22 +136,27 @@ export default function ImageDataEditor() {
         <div>
             <div>
                 <Stack spacing={2}>
-                    {Object.keys(images).map((category) => (
-                        <div key={category}>
-                            <CategoryAccordion
-                                imageData={images[category]}
-                                category={category}
-                                handleFileUpload={handleFileUpload}
-                                handleDelete={handleDelete}
-                                handleDelayChange={handleDelayChange}
-                            /></div>
-                    ))}
+                    <>
+                        {(Object.keys(images) as Category[]).map((category) => (
+                            <div key={category}>
+                                <CategoryAccordion
+                                    imageData={images[category]}
+                                    category={category}
+                                    handleFileUpload={handleFileUpload}
+                                    handleDelete={handleDelete}
+                                    handleDelayChange={handleDelayChange}
+                                />
+                            </div>
+                        ))}
 
-                    <Button
-                        variant="outlined"
-                        color="success"
-                        onClick={exportData}>Export .dat File
-                    </Button>
+                        <Button
+                            variant="outlined"
+                            color="success"
+                            onClick={exportData}
+                        >
+                            Export .dat File
+                        </Button>
+                    </>
                 </Stack>
             </div>
         </div>

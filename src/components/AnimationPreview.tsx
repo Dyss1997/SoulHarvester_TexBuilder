@@ -1,8 +1,10 @@
-import * as React from "react";
 import {useEffect, useState} from "react";
 import {Box} from "@mui/material";
+import {UploadedImage} from "./ImageDataEditorTypes.ts";
 
-const AnimationPreview = ({imageData}) => {
+const AnimationPreview = ({imageData}: {
+    imageData: UploadedImage[]
+}) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     useEffect(() => {
         if (imageData.length === 0) {
